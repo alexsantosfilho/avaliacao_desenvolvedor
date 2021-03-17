@@ -1,4 +1,8 @@
 Rails.application.routes.draw do
-  resources :sales
+  
+  root 'home#index' 
+  resources :sales, except: [:show, :new, :create, :edit, :update]  do
+    post :import, on: :collection
+  end
   # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
 end
