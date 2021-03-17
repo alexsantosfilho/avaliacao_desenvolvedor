@@ -1,16 +1,27 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Sales</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
-
-    <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>
-    <%= javascript_pack_tag 'application', 'data-turbolinks-track': 'reload' %>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track': 'reload' %>
   </head>
-
   <body>
-    <%= yield %>
+  <%= render 'layouts/navigation' %>
+
+    <div id="main" role="main">
+      <div class="container">
+        <div class="content">
+            <div class="row">
+              <div class="span12">
+                <%= render 'layouts/messages' %>
+                <%= yield %>
+              </div>
+            </div>
+            <footer>
+          </footer>
+        </div>
+      </div> <!--! end of .container -->
+    </div>
+     <!--! end of #main -->
   </body>
 </html>

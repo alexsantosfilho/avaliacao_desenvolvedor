@@ -1,31 +1,47 @@
-<p id="notice"><%= notice %></p>
-
-<h1>Sales</h1>
-
-<table>
+<h3>Vendas</h3>
+<%= form_tag import_sales_path, method: :post, local: true, multipart: true do %>
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel">Importar dados</h3>
+  </div>
+  <div class="modal-body">
+    <%= file_field_tag :file, required: true, accept: 'text/plain' %>
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Cancelar</button>
+    <button class="btn btn-primary">Importar</button>
+  </div>
+<% end %>
+<table class="table">
   <thead>
     <tr>
-      <th>Description</th>
-      <th>Unit price</th>
-      <th>Quantity</th>
-      <th colspan="3"></th>
+      <th>Cliente</th>
+      <th>Descri&ccedil;&atilde;o</th>
+      <th>Pre&ccedil;o unit&aacute;rio</th>
+      <th>Quantidade</th>
+      <th>Endere&ccedil;o</th>
+      <th>Vendedor</th>
     </tr>
   </thead>
-
   <tbody>
-    <% @sales.each do |sale| %>
+    <% if @sales.empty? %>
       <tr>
-        <td><%= sale.description %></td>
-        <td><%= sale.unit_price %></td>
-        <td><%= sale.quantity %></td>
-        <td><%= link_to 'Show', sale %></td>
-        <td><%= link_to 'Edit', edit_sale_path(sale) %></td>
-        <td><%= link_to 'Destroy', sale, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+        <td colspan="8" class="text-center" style="padding: 15px 0">
+          Não há registros de vendas<br/>
+        </td>
       </tr>
+    <% else %>
+      <% @sales.each do |sale| %>
+        <tr>
+          <td><%= sale.customer.name %></td>
+          <td><%= sale.description %></td>
+          <td><%= number_to_currency(sale.unit_price, unit: 'R$ ', precision: 2, separator: ",", delimiter: ".") %></td>
+          <td><%= sale.quantity %></td>
+          <td><%= sale.address.name %></td>
+          <td><%= sale.vendor.name %></td>
+        </tr>
+      <% end %>
     <% end %>
   </tbody>
 </table>
-
-<br>
-
-<%= link_to 'New Sale', new_sale_path %>
+<p><%= number_to_currency(@total_sales, unit: 'R$ ', precision: 2, separator: ",", delimiter: ".") %></p>
