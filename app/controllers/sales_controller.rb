@@ -1,69 +1,63 @@
 class SalesController < ApplicationController
-  before_action :set_sale, only: %i[ show edit update destroy ]
+  include ActionView::Helpers::NumberHelper
 
-  # GET /sales or /sales.json
   def index
     @sales = Sale.all
+    @total_sales = @sales.map { |data| data[:unit_price].to_f * data[:quantity].to_f }.reduce(0){|sum, x| sum + x}
   end
-
-  # GET /sales/1 or /sales/1.json
-  def show
-  end
-
-  # GET /sales/new
-  def new
-    @sale = Sale.new
-  end
-
-  # GET /sales/1/edit
-  def edit
-  end
-
-  # POST /sales or /sales.json
-  def create
+  
+	def new_sale params
     @sale = Sale.new(sale_params)
+    @sale.unit_price = params[:unit_price]
+    @sale.description = params[:description]
+    @sale.quantity = params[:quantity]
+    @sale.customer = Customer.find_or_create_by(name: params[:customer_name])
+    @sale.address =  Address.find_or_create_by(name: params[:address])
+    @sale.vendor =  Vendor.find_or_create_by(name: params[:vendor_name])
+    @sale.save!
+    rescue
+      flash[:error] = "Error ao salvar"  
+	end
 
-    respond_to do |format|
-      if @sale.save
-        format.html { redirect_to @sale, notice: "Sale was successfully created." }
-        format.json { render :show, status: :created, location: @sale }
-      else
-        format.html { render :new, status: :unprocessable_entity }
-        format.json { render json: @sale.errors, status: :unprocessable_entity }
-      end
+  def import
+    unless sale_upload_params[:file]
+      redirect_to :root
+      flash[:notice] = "Você deve escolher um arquivo"
+      return      
     end
-  end
+    uploaded_file = sale_upload_params[:file]
+    content_file = uploaded_file.read.force_encoding('UTF-8')
 
-  # PATCH/PUT /sales/1 or /sales/1.json
-  def update
-    respond_to do |format|
-      if @sale.update(sale_params)
-        format.html { redirect_to @sale, notice: "Sale was successfully updated." }
-        format.json { render :show, status: :ok, location: @sale }
-      else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.json { render json: @sale.errors, status: :unprocessable_entity }
-      end
-    end
-  end
-
-  # DELETE /sales/1 or /sales/1.json
-  def destroy
-    @sale.destroy
-    respond_to do |format|
-      format.html { redirect_to sales_url, notice: "Sale was successfully destroyed." }
-      format.json { head :no_content }
-    end
-  end
-
-  private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_sale
-      @sale = Sale.find(params[:id])
+    if content_file.blank? 
+      redirect_to :root
+      flash[:error] = 'arquivo sem dados' 
+      return
     end
 
-    # Only allow a list of trusted parameters through.
+    unless content_file.each_line.first.split(/\t/).size == 6
+      redirect_to :root
+      flash[:error] = 'Error no formato'
+      return            
+    end
+
+    rows = content_file.to_s.split(/\n/)
+
+    process_file = FileBase.process_file(rows)
+
+    process_file.each do |params|
+      new_sale(params)
+    end
+ 
+    redirect_to sales_path, flash: {notice: 'importado com sucesso'}
+  end  
+
+  private 
+    def sale_upload_params
+      params.permit(:file)
+    end
+
     def sale_params
-      params.require(:sale).permit(:description, :unit_price, :quantity)
+      params.permit(:customer_name, :vendor_name, :address)
     end
+
 end
